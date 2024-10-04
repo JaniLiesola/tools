@@ -4,7 +4,7 @@
 # `system/com.cisco.secureclient.vpn.service.agent`.
 # 
 # Usage:
-#   sudo ./macos-net-error.sh
+#   sudo ./macos-net-fix.sh
 #
 # Note:
 #   - This script requires superuser privileges to execute.
