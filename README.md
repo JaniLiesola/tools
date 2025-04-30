@@ -1,4 +1,4 @@
-## Tools Scripts Repository
+## Tools scripts Repository
 
 This repository contains a collection of **bash** and **powershell** scripts designed to assist with various tasks and improve workflow efficiency. These scripts are intended to serve as helpful tools for developers and system administrators.
 
