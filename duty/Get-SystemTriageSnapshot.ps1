@@ -64,20 +64,20 @@ $Uptime = (Get-Date) - $OS.LastBootUpTime
 Write-Host "Server: $($OS.CSName) | OS: $($OS.Caption) | Uptime: $($Uptime.Days)d $($Uptime.Hours)h"
 
 Write-Host "`n--- DISK STATUS (Logical) ---" -ForegroundColor Cyan
-Get-Volume | Where-Object {$_.DriveLetter} | Select-Object DriveLetter, @{Name="Free%";Expression={[math]::Round(($_.SizeRemaining / $_.Size) * 100, 1)}}, @{Name="FreeGB";Expression={[math]::Round($_.SizeRemaining/1GB,2)}} | Format-Table
+Get-Volume | Where-Object {$_.DriveLetter} | Select-Object DriveLetter, @{Name="Free%";Expression={[math]::Round(($_.SizeRemaining / $_.Size) * 100, 1)}}, @{Name="FreeGB";Expression={[math]::Round($_.SizeRemaining/1GB,2)}} | Format-Table -AutoSize | Out-Host
 
 Write-Host "`n--- TOP 5 PROCESSES (CPU) ---" -ForegroundColor Cyan
-Get-Process | Sort-Object CPU -Descending | Select-Object -First 5 Name, CPU, WorkingSet | Format-Table
+Get-Process | Sort-Object CPU -Descending | Select-Object -First 5 Name, CPU, WorkingSet | Format-Table -AutoSize | Out-Host
 
 Write-Host "`n--- NETWORK: LISTENING PORTS ---" -ForegroundColor Cyan
-Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Select-Object LocalAddress, LocalPort, OwningProcess | Sort-Object LocalPort | Select-Object -First 15
+Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Select-Object LocalAddress, LocalPort, OwningProcess | Sort-Object LocalPort | Select-Object -First 15 | Format-Table -AutoSize | Out-Host
 
 Write-Host "`n--- LOG FILE FRESHNESS ---" -ForegroundColor Cyan
-Get-ChildItem -Path C:\Windows\Logs -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10 Name, LastWriteTime
+Get-ChildItem -Path C:\Windows\Logs -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10 Name, LastWriteTime | Format-Table -AutoSize | Out-Host
 
 Write-Host "`n--- CRITICAL EVENT LOGS (Last 10) ---" -ForegroundColor Cyan
 try {
-    Get-WinEvent -FilterHashtable @{LogName='System','Application'; Level=1,2} -MaxEvents 10 -ErrorAction SilentlyContinue | Select-Object TimeCreated, LogName, ProviderName, Message | Format-List
+    Get-WinEvent -FilterHashtable @{LogName='System','Application'; Level=1,2} -MaxEvents 10 -ErrorAction SilentlyContinue | Select-Object TimeCreated, LogName, ProviderName, Message | Format-List | Out-Host
 } catch {
     Write-Host "No critical events found or access denied."
 }
@@ -102,7 +102,7 @@ try {
             }
         }
 
-        $pendingList | Format-Table -AutoSize
+        $pendingList | Format-Table -AutoSize | Out-Host
     }
 }
 catch {
@@ -141,7 +141,7 @@ try {
         Select-Object -First 10 HotFixID, InstalledOn, Description, InstalledBy
 
     if ($hotfixes) {
-        $hotfixes | Format-Table -AutoSize
+        $hotfixes | Format-Table -AutoSize | Out-Host
     }
     else {
         Write-Host "No hotfix entries returned by Get-HotFix."
@@ -152,7 +152,8 @@ catch {
     try {
         Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WindowsUpdateClient'; Id = 19,20,21,43,44 } -MaxEvents 15 -ErrorAction Stop |
             Select-Object TimeCreated, Id, ProviderName, Message |
-            Format-List
+            Format-List |
+            Out-Host
     }
     catch {
         Write-Host "Could not retrieve installed update history from event logs." -ForegroundColor Yellow
@@ -182,7 +183,7 @@ try {
 
     if ($successfulLogons) {
         Write-Host "Recent successful logons (Event ID 4624):"
-        $successfulLogons | Format-Table -AutoSize
+        $successfulLogons | Format-Table -AutoSize | Out-Host
     }
     else {
         Write-Host "No successful logons returned from Security log."
@@ -215,7 +216,7 @@ try {
 
     if ($failedLogons) {
         Write-Host "`nRecent failed logons (Event ID 4625):"
-        $failedLogons | Format-Table -AutoSize
+        $failedLogons | Format-Table -AutoSize | Out-Host
     }
     else {
         Write-Host "`nNo failed logons returned from Security log."
