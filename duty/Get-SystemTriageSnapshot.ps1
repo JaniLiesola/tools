@@ -35,17 +35,18 @@ if ($missingOptional.Count -gt 0) {
 Write-Host "PowerShell: $($PSVersionTable.PSVersion)"
 Write-Host ""
 
+# Extracts a named value from EventData XML fields.
 function Get-EventDataField {
     param(
         [Parameter(Mandatory)]
-        $Event,
+        $Record,
 
         [Parameter(Mandatory)]
         [string]$Name
     )
 
     try {
-        $xml = [xml]$Event.ToXml()
+        $xml = [xml]$Record.ToXml()
         $node = $xml.Event.EventData.Data | Where-Object { $_.Name -eq $Name } | Select-Object -First 1
         if ($node) { return [string]$node.'#text' }
     }
@@ -56,6 +57,7 @@ function Get-EventDataField {
     return $null
 }
 
+# Core OS identity and uptime context.
 Write-Host "--- OS & UPTIME ---" -ForegroundColor Cyan
 $OS = Get-CimInstance Win32_OperatingSystem
 $Uptime = (Get-Date) - $OS.LastBootUpTime
@@ -80,6 +82,7 @@ try {
     Write-Host "No critical events found or access denied."
 }
 
+# Reads currently pending software updates via Windows Update API (read-only).
 Write-Host "`n--- PENDING UPDATE STATUS ---" -ForegroundColor Cyan
 try {
     $updateSession = New-Object -ComObject Microsoft.Update.Session
@@ -106,6 +109,7 @@ catch {
     Write-Host "Could not query pending updates from Windows Update API." -ForegroundColor Yellow
 }
 
+# Aggregates common registry-based reboot requirement indicators.
 Write-Host "`n--- REBOOT REQUIREMENT ---" -ForegroundColor Cyan
 try {
     $rebootSignals = [ordered]@{
@@ -129,6 +133,7 @@ catch {
     Write-Host "Could not determine reboot requirement state." -ForegroundColor Yellow
 }
 
+# Shows recently installed updates, with event-log fallback if hotfix query fails.
 Write-Host "`n--- LATEST INSTALLED UPDATES ---" -ForegroundColor Cyan
 try {
     $hotfixes = Get-HotFix -ErrorAction Stop |
@@ -154,14 +159,15 @@ catch {
     }
 }
 
+# Summarizes recent successful and failed interactive login activity.
 Write-Host "`n--- RECENT LOGIN ACTIVITY ---" -ForegroundColor Cyan
 try {
     $successfulLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4624 } -MaxEvents 200 -ErrorAction Stop |
         ForEach-Object {
-            $targetUser = Get-EventDataField -Event $_ -Name 'TargetUserName'
-            $targetDomain = Get-EventDataField -Event $_ -Name 'TargetDomainName'
-            $ipAddress = Get-EventDataField -Event $_ -Name 'IpAddress'
-            $logonType = Get-EventDataField -Event $_ -Name 'LogonType'
+            $targetUser = Get-EventDataField -Record $_ -Name 'TargetUserName'
+            $targetDomain = Get-EventDataField -Record $_ -Name 'TargetDomainName'
+            $ipAddress = Get-EventDataField -Record $_ -Name 'IpAddress'
+            $logonType = Get-EventDataField -Record $_ -Name 'LogonType'
 
             if ($targetUser -and $targetUser -ne 'ANONYMOUS LOGON' -and $targetUser -notlike '*$') {
                 [pscustomobject]@{
@@ -189,11 +195,11 @@ catch {
 try {
     $failedLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4625 } -MaxEvents 120 -ErrorAction Stop |
         ForEach-Object {
-            $targetUser = Get-EventDataField -Event $_ -Name 'TargetUserName'
-            $targetDomain = Get-EventDataField -Event $_ -Name 'TargetDomainName'
-            $ipAddress = Get-EventDataField -Event $_ -Name 'IpAddress'
-            $status = Get-EventDataField -Event $_ -Name 'Status'
-            $subStatus = Get-EventDataField -Event $_ -Name 'SubStatus'
+            $targetUser = Get-EventDataField -Record $_ -Name 'TargetUserName'
+            $targetDomain = Get-EventDataField -Record $_ -Name 'TargetDomainName'
+            $ipAddress = Get-EventDataField -Record $_ -Name 'IpAddress'
+            $status = Get-EventDataField -Record $_ -Name 'Status'
+            $subStatus = Get-EventDataField -Record $_ -Name 'SubStatus'
 
             if ($targetUser -and $targetUser -notlike '*$') {
                 [pscustomobject]@{

@@ -14,6 +14,7 @@ EOF
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Verifies OS and core command availability before deeper checks.
 print_compatibility_check() {
 	echo -e "${YELLOW}--- COMPATIBILITY CHECK ---${NC}"
 
@@ -52,6 +53,7 @@ print_compatibility_check() {
 	echo ""
 }
 
+# Shows recently installed package updates from the distro-specific history source.
 print_latest_updates() {
 	echo -e "${YELLOW}--- LATEST INSTALLED UPDATES ---${NC}"
 
@@ -80,6 +82,7 @@ print_latest_updates() {
 	echo ""
 }
 
+# Summarizes pending updates with distro-aware commands.
 print_pending_update_status() {
 	echo -e "${YELLOW}--- PENDING UPDATE STATUS ---${NC}"
 
@@ -137,6 +140,7 @@ print_pending_update_status() {
 	echo ""
 }
 
+# Detects whether the host likely needs a reboot after updates.
 print_reboot_requirement() {
 	echo -e "${YELLOW}--- REBOOT REQUIREMENT ---${NC}"
 
@@ -164,6 +168,7 @@ print_reboot_requirement() {
 	echo ""
 }
 
+# Displays recent successful and failed login activity.
 print_recent_logins() {
 	echo -e "${YELLOW}--- RECENT LOGIN ACTIVITY ---${NC}"
 
@@ -191,8 +196,11 @@ print_recent_logins() {
 	fi
 	echo ""
 }
+
+# Start with environment/tooling validation.
 print_compatibility_check
 
+# Core runtime health snapshot sections.
 echo -e "${YELLOW}--- SYSTEM SNAPSHOT ---${NC}"
 echo "Hostname: $(hostname) | Kernel: $(uname -r)"
 echo "Uptime: $(uptime -p)"
@@ -226,6 +234,8 @@ else
 	echo "journalctl not available on this host, skipping section."
 fi
 echo ""
+
+# Update and access-focused triage sections.
 print_latest_updates
 print_pending_update_status
 print_reboot_requirement
