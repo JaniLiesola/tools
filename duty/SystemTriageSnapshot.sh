@@ -3,7 +3,7 @@
 # Print AI analysis instructions first
 cat << 'EOF'
 ### AI ANALYSIS CONTEXT - DO NOT IGNORE ###
-Role: Senior Infrastructure Architect / Senior Technical Lead.
+Role: Senior Infrastructure Architect / Senior Technical Consultant.
 Task: Analyze the following diagnostic output from a critical server environment.
 Instructions: Provide a concise, high-level technical summary. Identify root causes or anomalies (resource exhaustion, service failures, or specific error codes). Skip basic explanations; focus on advanced troubleshooting steps, performance bottlenecks, and architectural impact.
 ###########################################
@@ -168,6 +168,27 @@ print_reboot_requirement() {
 	echo ""
 }
 
+# Shows recent boot/reboot history for quick timeline context.
+print_recent_boots() {
+	echo -e "${YELLOW}--- RECENT BOOT HISTORY ---${NC}"
+
+	if command -v last >/dev/null 2>&1; then
+		echo "Recent boots (last reboot):"
+		last reboot -n 5 2>/dev/null
+		echo ""
+	fi
+
+	if command -v journalctl >/dev/null 2>&1; then
+		echo "Boot sessions (journalctl --list-boots):"
+		journalctl --list-boots --no-pager 2>/dev/null | head -n 10
+		echo ""
+		return
+	fi
+
+	echo "No additional boot history source available."
+	echo ""
+}
+
 # Displays recent successful and failed login activity.
 print_recent_logins() {
 	echo -e "${YELLOW}--- RECENT LOGIN ACTIVITY ---${NC}"
@@ -239,4 +260,5 @@ echo ""
 print_latest_updates
 print_pending_update_status
 print_reboot_requirement
+print_recent_boots
 print_recent_logins

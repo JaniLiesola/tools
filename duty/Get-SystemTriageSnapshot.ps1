@@ -1,6 +1,6 @@
 $AIHeader = @"
 ### AI ANALYSIS CONTEXT - DO NOT IGNORE ###
-Role: Senior Infrastructure Architect / Senior Technical Lead.
+Role: Senior Infrastructure Architect / Senior Technical Consultant.
 Task: Analyze the following diagnostic output from a critical server environment.
 Instructions: Provide a concise, high-level technical summary. Identify root causes or anomalies (resource exhaustion, service failures, or specific error codes). Skip basic explanations; focus on advanced troubleshooting steps, performance bottlenecks, and architectural impact.
 ###########################################
@@ -131,6 +131,30 @@ try {
 }
 catch {
     Write-Host "Could not determine reboot requirement state." -ForegroundColor Yellow
+}
+
+# Shows recent boot/restart related events for timeline context.
+Write-Host "`n--- RECENT BOOT HISTORY ---" -ForegroundColor Cyan
+try {
+    $bootEvents = Get-WinEvent -FilterHashtable @{ LogName = 'System'; Id = 6005,6006,6009,1074 } -MaxEvents 80 -ErrorAction Stop |
+        Where-Object { $_.Id -in 6005,6009,1074 } |
+        Select-Object -First 10 @{Name='TimeCreated';Expression={$_.TimeCreated}},
+            @{Name='EventId';Expression={$_.Id}},
+            @{Name='Source';Expression={$_.ProviderName}},
+            @{Name='Message';Expression={
+                $line = (($_.Message -replace "`r?`n", ' ').Trim())
+                if ($line.Length -gt 120) { $line.Substring(0, 120) + '...' } else { $line }
+            }}
+
+    if ($bootEvents) {
+        $bootEvents | Format-Table -AutoSize | Out-Host
+    }
+    else {
+        Write-Host "No recent boot events returned from System log."
+    }
+}
+catch {
+    Write-Host "Could not read boot history from System event log." -ForegroundColor Yellow
 }
 
 # Shows recently installed updates, with event-log fallback if hotfix query fails.
