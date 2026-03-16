@@ -19,6 +19,7 @@ This folder contains quick triage and event log scripts.
 	8) Reboot requirement
 	9) Boot history
  10) Login activity (success/fail + SSH auth errors)
+ 
 - `Get-SystemTriageSnapshot.ps1` steps:
 	1) Compatibility check
 	2) OS/uptime
