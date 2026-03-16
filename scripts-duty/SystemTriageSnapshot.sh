@@ -241,6 +241,40 @@ echo ""
 echo -e "${YELLOW}--- LOG FRESHNESS (Last modified in /var/log) ---${NC}"
 ls -lt /var/log | head -n 10
 echo ""
+echo -e "${YELLOW}--- ENABLED SERVICES NOT RUNNING ---${NC}"
+if command -v systemctl >/dev/null 2>&1; then
+	mapfile -t enabled_services < <(systemctl list-unit-files --type=service --state=enabled --no-legend 2>/dev/null | awk '{print $1}')
+
+	if [[ ${#enabled_services[@]} -eq 0 ]]; then
+		echo "No enabled services found."
+	else
+		declare -a stopped_enabled=()
+		for svc in "${enabled_services[@]}"; do
+			# Skip templated unit definitions like getty@.service that lack an instance name.
+			[[ $svc == *@.service ]] && continue
+
+			if ! systemctl is-active --quiet "$svc"; then
+				stopped_enabled+=("$svc")
+			fi
+			[[ ${#stopped_enabled[@]} -ge 15 ]] && break
+		done
+
+		if [[ ${#stopped_enabled[@]} -eq 0 ]]; then
+			echo "All enabled services are running."
+		else
+			printf "%-45s %-12s %-12s %s\n" "SERVICE" "ACTIVE" "SUB" "DESCRIPTION"
+			for svc in "${stopped_enabled[@]}"; do
+				active=$(systemctl show "$svc" -p ActiveState --value 2>/dev/null)
+				sub=$(systemctl show "$svc" -p SubState --value 2>/dev/null)
+				desc=$(systemctl show "$svc" -p Description --value 2>/dev/null)
+				printf "%-45s %-12s %-12s %s\n" "$svc" "${active:-unknown}" "${sub:-unknown}" "${desc:-}"
+			done
+		fi
+	fi
+else
+	echo "systemctl not available on this host, skipping section."
+fi
+echo ""
 echo -e "${YELLOW}--- FAILED SYSTEMD UNITS ---${NC}"
 if command -v systemctl >/dev/null 2>&1; then
 	systemctl --failed --no-legend

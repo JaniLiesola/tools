@@ -75,6 +75,25 @@ Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Select-Object
 Write-Host "`n--- LOG FILE FRESHNESS ---" -ForegroundColor Cyan
 Get-ChildItem -Path C:\Windows\Logs -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10 Name, LastWriteTime | Format-Table -AutoSize | Out-Host
 
+Write-Host "`n--- AUTO-START SERVICES NOT RUNNING ---" -ForegroundColor Cyan
+try {
+    $stoppedAuto = Get-Service -ErrorAction Stop |
+        Where-Object { $_.StartType -eq 'Automatic' -and $_.Status -ne 'Running' }
+
+    if ($stoppedAuto) {
+        $stoppedAuto |
+            Select-Object -First 15 Name, DisplayName, StartType, Status |
+            Format-Table -AutoSize |
+            Out-Host
+    }
+    else {
+        Write-Host "All automatic services are running."
+    }
+}
+catch {
+    Write-Host "Could not query service state." -ForegroundColor Yellow
+}
+
 Write-Host "`n--- CRITICAL EVENT LOGS (Last 10) ---" -ForegroundColor Cyan
 try {
     Get-WinEvent -FilterHashtable @{LogName='System','Application'; Level=1,2} -MaxEvents 10 -ErrorAction SilentlyContinue | Select-Object TimeCreated, LogName, ProviderName, Message | Format-List | Out-Host
