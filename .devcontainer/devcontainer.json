@@ -1,0 +1,55 @@
+{
+  "name": "IaC Dev (Bicep + Terraform + Azure CLI)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+
+    "ghcr.io/devcontainers/features/git-lfs:1": {},
+
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest",
+      "tflint": "latest",
+      "terragrunt": "latest",
+      "installTFsec": true,
+      "installTerraformDocs": true
+    },
+
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "version": "latest",
+      "installBicep": true,
+      "bicepVersion": "latest",
+      "extensions": ""
+    }
+
+    /* Tarvittaessa K8s:
+    ,"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
+    */
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-bicep",
+        "hashicorp.terraform",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+        "esbenp.prettier-vscode",
+        "EditorConfig.EditorConfig",
+        "eamodio.gitlens",
+        "ms-vscode.azurecli"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "[terraform]": { "editor.defaultFormatter": "hashicorp.terraform" },
+        "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+        "[yaml]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+        "[markdown]": { "editor.defaultFormatter": "esbenp.prettier-vscode" }
+      }
+    }
+  },
+
+  "postCreateCommand": "az config set core.survey_message=no || true"
+}
